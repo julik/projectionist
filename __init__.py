@@ -1,5 +1,5 @@
 import nuke, nukescripts, os, sys, re
-__version__ = (1, 0, 0) 
+__version__ = (1, 0, 1) 
 
 MY_MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 # Use self-detecting path for icons.
@@ -31,8 +31,11 @@ def create_camera_at(selected_camera, at_frame, link_to_original = False):
 		
 	selected_camera_name = selected_camera.name()
 	
-	# Create a fresh cam
-	locked_cam = nuke.nodes.Camera2() # createNode replugs connections for us
+	# Create a fresh cam, make sure it has the same CameraOp class as the camera
+	# we are replicating. This is important when we are using non-standard Camera ops.
+	camera_op_class = selected_camera.Class()
+	locked_cam = nuke.createNode(camera_op_class) # createNode replugs connections for us
+	
 	locked_cam.setName("%s_Proj_%d" % (selected_camera_name, at_frame))
 	
 	# Add the "at" knob
