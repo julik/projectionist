@@ -1,0 +1,5 @@
+*.pyc
+*.nk~
+.zip
+.DS_Store
+externals

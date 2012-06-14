@@ -1,5 +1,5 @@
 import nuke, nukescripts, os, sys, re
-__version__ = (1, 0, 1) 
+__version__ = (1, 1, 0) 
 
 MY_MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 # Use self-detecting path for icons.
@@ -226,6 +226,33 @@ def create_projection_alley_panel():
 	group["label"].setValue("Cam prj f: %d to: %d every: %d" % (start, finish, istep))
 	group.setName("ProjectionAlley")
 
+def convert_to_dolly():
+	if not ensure_camera_selected(nuke.selectedNode()):
+		return
+	
+	cam = nuke.selectedNode()
+
+	dolly = nuke.nodes.Axis()
+	dolly.setName("DollyMount")
+
+	# Put the dolly next to the camera in the DAG
+	ONE_NODE_WIDTH = 82
+	dolly['xpos'].setValue(cam['xpos'].getValue() + ONE_NODE_WIDTH)
+	dolly['ypos'].setValue(cam['ypos'].getValue())
+
+	# Move the "translate" knob values into the dolly axis.
+	# Shortcut way to copy multiparameter knob animations
+	# http://forums.thefoundry.co.uk/phpBB2/viewtopic.php?t=4311
+	dolly['translate'].fromScript(cam['translate'].toScript()) 
+
+	# Reset the translations of the camera to 0
+	cam['translate'].fromScript("{0 0 0}")
+	cam.setInput(0, dolly)
+
+	# Note that the cam is nodal
+	cam['label'].setValue(cam['label'].getValue() + " (nodal)")
+
+    
 def create_projector_panel():
 	if not ensure_camera_selected(nuke.selectedNode()):
 		return
@@ -263,3 +290,4 @@ if nuke.GUI:
 	# Attach script commands
 	me.addCommand("Create a projector from this camera", "projectionist.create_projector_panel()", icon = os.path.join(ICONS_PATH, "at.png"))
 	me.addCommand("Create projection alley from this camera", "projectionist.create_projection_alley_panel()", icon = os.path.join(ICONS_PATH, "alley.png"))
+	me.addCommand("Convert this camera to nodal with dolly axis", "projectionist.convert_to_dolly()", icon = os.path.join(ICONS_PATH, "nodal.png"))
