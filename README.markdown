@@ -1,9 +1,10 @@
 ## What is Projectionist?
 
-Projectionist is a wonderful handy Nuke module with scripts for creating projection setups. Currently two commands are provided:
+Projectionist is a wonderful handy Nuke module with scripts for creating projection setups. Currently three commands are provided:
 
 * Create a projector from this camera
 * Create projection alley from this camera
+* Convert this camera to nodal with dolly axis
 
 For both to work you need to select a camera. The camera needs to be unlinked from it's FBX file if you use that.
 
