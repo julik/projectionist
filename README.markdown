@@ -24,7 +24,7 @@ with multiple frames layered on top of each other. Layering uses alpha masking, 
 
 It's also majorly useful for extracting textures from big camera moves - like flyovers and aerial shots.
 
-## Convert this camera to nodal with dolly axis
+### Convert this camera to nodal with dolly axis
 
 This will extract the position animation of your camera into a separate Axis node (your "dolly"). The camera will be then repositioned
 to the origin of the scene and parented to the dolly axis - so that you have a moving camera mount that does not rotate, and 
