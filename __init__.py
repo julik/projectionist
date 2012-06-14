@@ -246,7 +246,7 @@ def convert_to_dolly():
 	dolly['translate'].fromScript(cam['translate'].toScript()) 
 
 	# Reset the translations of the camera to 0
-	cam['translate'].fromScript("{0 0 0}")
+	cam['translate'].fromScript("0 0 0")
 	cam.setInput(0, dolly)
 
 	# Note that the cam is nodal
