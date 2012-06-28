@@ -1,4 +1,4 @@
-import nuke, nukescripts, os, sys, re
+import nuke, nukescripts, os, sys, re, inspect
 __version__ = (1, 1, 0) 
 
 MY_MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -282,12 +282,20 @@ def create_projector_panel():
 	else:
 		create_camera_at(nuke.selectedNode(), nuke.frame(), do_link)
 
+def func_shorthand(symbol):
+	"""
+	Returns the fully qualified function call with it's module so that it can be used in Nuke's menus.
+	func_shorthand(do_this) #=> "some.module.another.do_this()"
+	"""
+	my_module = inspect.getmodule(symbol).__name__
+	return '.'.join([my_module, symbol.__name__]) + '()'
+	
 if nuke.GUI:
 	# Inject our own node bar
 	toolbar = nuke.menu("Nodes")
 	me = toolbar.addMenu( "Projectionist", os.path.join(ICONS_PATH, "projectionist.png"))
 	
 	# Attach script commands
-	me.addCommand("Create a projector from this camera", "projectionist.create_projector_panel()", icon = os.path.join(ICONS_PATH, "at.png"))
-	me.addCommand("Create projection alley from this camera", "projectionist.create_projection_alley_panel()", icon = os.path.join(ICONS_PATH, "alley.png"))
-	me.addCommand("Convert this camera to nodal with dolly axis", "projectionist.convert_to_dolly()", icon = os.path.join(ICONS_PATH, "nodal.png"))
+	me.addCommand("Create a projector from this camera", func_shorthand(create_projector_panel), icon = os.path.join(ICONS_PATH, "at.png"))
+	me.addCommand("Create projection alley from this camera", func_shorthand(create_projection_alley_panel), icon = os.path.join(ICONS_PATH, "alley.png"))
+	me.addCommand("Convert this camera to nodal with dolly axis", func_shorthand(convert_to_dolly), icon = os.path.join(ICONS_PATH, "nodal.png"))
