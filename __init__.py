@@ -6,13 +6,13 @@ MY_MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 ICONS_PATH =  os.path.join(MY_MODULE_DIR, "icons")
 
 OPTIMUM_DAG_OFFSET = 100
+CAMERA_NODES = ["Camera", "Camera2", "SyCamera"]
 
 def ensure_camera_selected(selected_camera):
 	"""
 	Helps ensure that a camera is indeed selected
 	"""
-	camera_nodes = ["Camera", "Camera2", "SyCamera"]
-	if not selected_camera or not (selected_camera.Class() in camera_nodes):
+	if not selected_camera or not (selected_camera.Class() in CAMERA_NODES):
 		nuke.message("Please select a camera!")
 		return False
 	else:
