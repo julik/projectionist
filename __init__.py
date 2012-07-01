@@ -11,7 +11,7 @@ def ensure_camera_selected(selected_camera):
 	"""
 	Helps ensure that a camera is indeed selected
 	"""
-	camera_nodes = ["Camera", "Camera2"]
+	camera_nodes = ["Camera", "Camera2", "SyCamera"]
 	if not selected_camera or not (selected_camera.Class() in camera_nodes):
 		nuke.message("Please select a camera!")
 		return False
