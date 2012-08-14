@@ -1,5 +1,5 @@
 import nuke, nukescripts, os, sys, re
-__version__ = (1, 1, 0) 
+__version__ = (1, 1, 1) 
 
 MY_MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 # Use self-detecting path for icons.
@@ -34,7 +34,7 @@ def create_camera_at(selected_camera, at_frame, link_to_original = False):
 	# Create a fresh cam, make sure it has the same CameraOp class as the camera
 	# we are replicating. This is important when we are using non-standard Camera ops.
 	camera_op_class = selected_camera.Class()
-	locked_cam = nuke.createNode(camera_op_class) # createNode replugs connections for us
+	locked_cam = getattr(nuke.nodes, camera_op_class)() # Do not manage connections
 	
 	locked_cam.setName("%s_Proj_%d" % (selected_camera_name, at_frame))
 	
@@ -120,14 +120,16 @@ def create_projection_alley(sel_cam, frame_numbers, apply_crop, link_cameras):
 	last_x = sel_cam["xpos"].getValue()
 	
 	for frame_number in frame_numbers:
-		proj_cam = create_camera_at(sel_cam, frame_number, link_cameras)
+		cam = create_camera_at(sel_cam, frame_number, link_cameras)
 		
 		# Make it look Good(tm)
 		last_x = last_x + OPTIMUM_DAG_OFFSET
-		proj_cam["xpos"].setValue(last_x)
+		cam["xpos"].setValue(last_x)
 		
-		proj_cam["at"].clearAnimated()
-		proj_cam["at"].setValue(frame_number)
+		# Retime the cam
+		cam["at"].clearAnimated()
+		cam["at"].setValue(frame_number)
+		
 		frame_hold = nuke.nodes.FrameHold()
 		frame_hold.setInput(0, dot)
 		frame_hold["first_frame"].setValue(frame_number)
@@ -138,11 +140,11 @@ def create_projection_alley(sel_cam, frame_numbers, apply_crop, link_cameras):
 		if not apply_crop:
 			project3d["crop"].setValue(0)
 		
-		project3d.setInput(1, proj_cam)
+		# First set the zero input (avoid Nuke bug)
 		project3d.setInput(0, frame_hold)
+		project3d.setInput(1, cam)
 		shader_stack.append(project3d)
-		all_nodes.extend([proj_cam, project3d, frame_hold])
-		proj_cam = None # Nuke Bug
+		all_nodes.extend([cam, project3d, frame_hold])
 		
 	if len(shader_stack) > 1:
 		shader = shader_stack.pop(0) # just implement a fucking stack.shift() nazis
