@@ -109,7 +109,6 @@ def create_projection_alley(sel_cam, frame_numbers, apply_crop, link_cameras):
 	g.begin()
 	
 	shader_stack = []
-	all_nodes = []
 	
 	# Isolate outside of the bbox so that te shader does not cover things it's not supposed to
 	inp = nuke.nodes.Input()
@@ -144,7 +143,6 @@ def create_projection_alley(sel_cam, frame_numbers, apply_crop, link_cameras):
 		project3d.setInput(0, frame_hold)
 		project3d.setInput(1, cam)
 		shader_stack.append(project3d)
-		all_nodes.extend([cam, project3d, frame_hold])
 		
 	if len(shader_stack) > 1:
 		shader = shader_stack.pop(0) # just implement a fucking stack.shift() nazis
@@ -157,7 +155,6 @@ def create_projection_alley(sel_cam, frame_numbers, apply_crop, link_cameras):
 	else:
 		shader = shader_stack[0]
 	
-	all_nodes.append(shader)
 	
 	# End dot for the shaders
 	end_dot = nuke.nodes.Output()
