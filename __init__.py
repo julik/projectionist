@@ -226,6 +226,11 @@ def create_projection_alley_panel():
 	group.setName("ProjectionAlley")
 
 def convert_to_dolly():
+    """
+    Will extract the "translate" channel of a Camera and put it into
+    an Axis node. The rotating Camera will be parented underneath the Axis.
+    After that you can parent nodal elements (skydomes etc.) under the Axis.
+    """
 	if not ensure_camera_selected(nuke.selectedNode()):
 		return
 	
