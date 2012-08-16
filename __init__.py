@@ -1,5 +1,5 @@
 import nuke, nukescripts, os, sys, re
-__version__ = (1, 1, 0) 
+__version__ = (1, 1, 1) 
 
 MY_MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 # Use self-detecting path for icons.
@@ -34,7 +34,7 @@ def create_camera_at(selected_camera, at_frame, link_to_original = False, inpane
 	# Create a fresh cam, make sure it has the same CameraOp class as the camera
 	# we are replicating. This is important when we are using non-standard Camera ops.
 	camera_op_class = selected_camera.Class()
-	locked_cam = nuke.createNode(camera_op_class, inpanel = inpanel) # createNode replugs connections for us
+	locked_cam = getattr(nuke.nodes, camera_op_class)() # Do not manage connections
 	
 	locked_cam.setName("%s_Proj" % selected_camera_name)
 	
@@ -126,30 +126,30 @@ def create_projection_alley(sel_cam, frame_numbers, apply_crop, link_cameras):
 	last_x = sel_cam["xpos"].getValue()
 	
 	for frame_number in frame_numbers:
-		proj_cam = create_camera_at(sel_cam, frame_number, link_cameras, False)
+		cam = create_camera_at(sel_cam, frame_number, link_cameras)
 		
 		# Make it look Good(tm)
 		last_x = last_x + OPTIMUM_DAG_OFFSET
-		proj_cam["xpos"].setValue(last_x)
+		cam["xpos"].setValue(last_x)
 		
 		frame_hold = nuke.nodes.FrameHold()
 		frame_hold.setInput(0, dot)
+
 		if link_cameras:
 			frame_hold["first_frame"].setExpression(proj_cam.name() + ".at")
 		else:
 			frame_hold["first_frame"].setValue(frame_number)
 		
-		project3d = nuke.createNode("Project3D", inpanel = False)
-		
+		project3d = nuke.nodes.Project3D()
 		# It's better to have uncropped projections since alpha will determine layering
 		# WARNING creates bizarre overlaps!
 		if not apply_crop:
 			project3d["crop"].setValue(0)
 		
-		project3d.setInput(1, proj_cam)
+		# First set the zero input (avoid Nuke bug)
 		project3d.setInput(0, frame_hold)
+		project3d.setInput(1, cam)
 		shader_stack.append(project3d)
-		proj_cam = None # Nuke Bug
 		
 	if len(shader_stack) > 1:
 		shader = shader_stack.pop(0) # just implement a fucking stack.shift() nazis
