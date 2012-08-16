@@ -109,7 +109,6 @@ def create_projection_alley(sel_cam, frame_numbers, apply_crop, link_cameras):
 	g.begin()
 	
 	shader_stack = []
-	all_nodes = []
 	
 	# Isolate outside of the bbox so that te shader does not cover things it's not supposed to
 	inp = nuke.nodes.Input()
@@ -131,7 +130,8 @@ def create_projection_alley(sel_cam, frame_numbers, apply_crop, link_cameras):
 		frame_hold = nuke.nodes.FrameHold()
 		frame_hold.setInput(0, dot)
 		frame_hold["first_frame"].setValue(frame_number)
-		project3d = nuke.nodes.Project3D()
+		
+		project3d = nuke.createNode("Project3D", inpanel = False)
 		
 		# It's better to have uncropped projections since alpha will determine layering
 		# WARNING creates bizarre overlaps!
@@ -141,12 +141,10 @@ def create_projection_alley(sel_cam, frame_numbers, apply_crop, link_cameras):
 		project3d.setInput(1, proj_cam)
 		project3d.setInput(0, frame_hold)
 		shader_stack.append(project3d)
-		all_nodes.extend([proj_cam, project3d, frame_hold])
 		proj_cam = None # Nuke Bug
 		
 	if len(shader_stack) > 1:
 		shader = shader_stack.pop(0) # just implement a fucking stack.shift() nazis
-		all_nodes.append(shader)
 		while len(shader_stack) > 0:
 			merge_mat = nuke.nodes.MergeMat()
 			merge_mat.setInput(0, shader)
@@ -154,8 +152,6 @@ def create_projection_alley(sel_cam, frame_numbers, apply_crop, link_cameras):
 			shader = merge_mat # :-)
 	else:
 		shader = shader_stack[0]
-	
-	all_nodes.append(shader)
 	
 	# End dot for the shaders
 	end_dot = nuke.nodes.Output()
