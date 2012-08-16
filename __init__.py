@@ -36,17 +36,21 @@ def create_camera_at(selected_camera, at_frame, link_to_original = False):
 	camera_op_class = selected_camera.Class()
 	locked_cam = getattr(nuke.nodes, camera_op_class)() # Do not manage connections
 	
-	locked_cam.setName("%s_Proj_%d" % (selected_camera_name, at_frame))
+	locked_cam.setName("%s_Proj" % selected_camera_name)
 	
-	# Add the "at" knob
-	tab = nuke.Tab_Knob('Frame') 
-	locked_cam.addKnob(tab)
-	at = nuke.Double_Knob('at')
-	
-	# Animate the knob to the current frame
-	at.setAnimated()
-	at.setValueAt(at_frame, at_frame)
-	locked_cam.addKnob(at)
+	if link_to_original:
+		# Add the "at" knob
+		tab = nuke.Tab_Knob('Frame') 
+		locked_cam.addKnob(tab)
+		
+		at = nuke.Int_Knob('at')
+		at.setValue(at_frame)
+		locked_cam.addKnob(at)
+		
+		# button to set atknob to current frame (like in the Tracker node)
+		tframe = nuke.PyScript_Knob("Py_setThisFrame", "set to this frame", "n = nuke.thisNode();f = nuke.toNode('root').knob('frame').value();n.knob('at').setValue(f)")
+		tframe.clearFlag(nuke.STARTLINE)
+		locked_cam.addKnob(tframe)
 	
 	# Walk the animated knobs on the source camera and bind the projected camera to them
 	for knob_name, knob in selected_camera.knobs().iteritems():
@@ -71,7 +75,10 @@ def create_camera_at(selected_camera, at_frame, link_to_original = False):
 	
 	# Show a helpful reminder on the node label
 	# For String and File knobs you have to put the expression in brackets directly into the knob's value. Like so: 
-	locked_cam["label"].setValue("at [value at]")
+	if link_to_original:
+		locked_cam["label"].setValue("at [value at]")
+	else:
+		locked_cam["label"].setValue("at %d" % at_frame)
 	
 	# Give non-default color to projection cameras
 	locked_cam["tile_color"].setValue(0xc97fff)
@@ -109,7 +116,6 @@ def create_projection_alley(sel_cam, frame_numbers, apply_crop, link_cameras):
 	g.begin()
 	
 	shader_stack = []
-	all_nodes = []
 	
 	# Isolate outside of the bbox so that te shader does not cover things it's not supposed to
 	inp = nuke.nodes.Input()
@@ -126,15 +132,15 @@ def create_projection_alley(sel_cam, frame_numbers, apply_crop, link_cameras):
 		last_x = last_x + OPTIMUM_DAG_OFFSET
 		cam["xpos"].setValue(last_x)
 		
-		# Retime the cam
-		cam["at"].clearAnimated()
-		cam["at"].setValue(frame_number)
-		
 		frame_hold = nuke.nodes.FrameHold()
 		frame_hold.setInput(0, dot)
-		frame_hold["first_frame"].setValue(frame_number)
-		project3d = nuke.nodes.Project3D()
+
+		if link_cameras:
+			frame_hold["first_frame"].setExpression(proj_cam.name() + ".at")
+		else:
+			frame_hold["first_frame"].setValue(frame_number)
 		
+		project3d = nuke.nodes.Project3D()
 		# It's better to have uncropped projections since alpha will determine layering
 		# WARNING creates bizarre overlaps!
 		if not apply_crop:
@@ -144,11 +150,9 @@ def create_projection_alley(sel_cam, frame_numbers, apply_crop, link_cameras):
 		project3d.setInput(0, frame_hold)
 		project3d.setInput(1, cam)
 		shader_stack.append(project3d)
-		all_nodes.extend([cam, project3d, frame_hold])
 		
 	if len(shader_stack) > 1:
 		shader = shader_stack.pop(0) # just implement a fucking stack.shift() nazis
-		all_nodes.append(shader)
 		while len(shader_stack) > 0:
 			merge_mat = nuke.nodes.MergeMat()
 			merge_mat.setInput(0, shader)
@@ -156,8 +160,6 @@ def create_projection_alley(sel_cam, frame_numbers, apply_crop, link_cameras):
 			shader = merge_mat # :-)
 	else:
 		shader = shader_stack[0]
-	
-	all_nodes.append(shader)
 	
 	# End dot for the shaders
 	end_dot = nuke.nodes.Output()
