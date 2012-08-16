@@ -18,7 +18,7 @@ def ensure_camera_selected(selected_camera):
 	else:
 		return True
 
-def create_camera_at(selected_camera, at_frame, link_to_original = False, inpanel = True):
+def create_camera_at(selected_camera, at_frame, link_to_original = False):
 	"""
 	Creates a camera that is a frozen copy of the currently selected camera at the current frame.
 	The freeze frame is controlled with a separated knob and can be animated for timewarp effects.
