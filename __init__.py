@@ -18,7 +18,7 @@ def ensure_camera_selected(selected_camera):
 	else:
 		return True
 
-def create_camera_at(selected_camera, at_frame, link_to_original = False):
+def create_camera_at(selected_camera, at_frame, link_to_original = False, inpanel = True):
 	"""
 	Creates a camera that is a frozen copy of the currently selected camera at the current frame.
 	The freeze frame is controlled with a separated knob and can be animated for timewarp effects.
@@ -34,19 +34,23 @@ def create_camera_at(selected_camera, at_frame, link_to_original = False):
 	# Create a fresh cam, make sure it has the same CameraOp class as the camera
 	# we are replicating. This is important when we are using non-standard Camera ops.
 	camera_op_class = selected_camera.Class()
-	locked_cam = nuke.createNode(camera_op_class) # createNode replugs connections for us
+	locked_cam = nuke.createNode(camera_op_class, inpanel = inpanel) # createNode replugs connections for us
 	
-	locked_cam.setName("%s_Proj_%d" % (selected_camera_name, at_frame))
+	locked_cam.setName("%s_Proj" % selected_camera_name)
 	
-	# Add the "at" knob
-	tab = nuke.Tab_Knob('Frame') 
-	locked_cam.addKnob(tab)
-	at = nuke.Double_Knob('at')
-	
-	# Animate the knob to the current frame
-	at.setAnimated()
-	at.setValueAt(at_frame, at_frame)
-	locked_cam.addKnob(at)
+	if link_to_original:
+		# Add the "at" knob
+		tab = nuke.Tab_Knob('Frame') 
+		locked_cam.addKnob(tab)
+		
+		at = nuke.Int_Knob('at')
+		at.setValue(at_frame)
+		locked_cam.addKnob(at)
+		
+		# button to set atknob to current frame (like in the Tracker node)
+		tframe = nuke.PyScript_Knob("Py_setThisFrame", "set to this frame", "n = nuke.thisNode();f = nuke.toNode('root').knob('frame').value();n.knob('at').setValue(f)")
+		tframe.clearFlag(nuke.STARTLINE)
+		locked_cam.addKnob(tframe)
 	
 	# Walk the animated knobs on the source camera and bind the projected camera to them
 	for knob_name, knob in selected_camera.knobs().iteritems():
@@ -71,7 +75,10 @@ def create_camera_at(selected_camera, at_frame, link_to_original = False):
 	
 	# Show a helpful reminder on the node label
 	# For String and File knobs you have to put the expression in brackets directly into the knob's value. Like so: 
-	locked_cam["label"].setValue("at [value at]")
+	if link_to_original:
+		locked_cam["label"].setValue("at [value at]")
+	else:
+		locked_cam["label"].setValue("at %d" % at_frame)
 	
 	# Give non-default color to projection cameras
 	locked_cam["tile_color"].setValue(0xc97fff)
@@ -119,17 +126,18 @@ def create_projection_alley(sel_cam, frame_numbers, apply_crop, link_cameras):
 	last_x = sel_cam["xpos"].getValue()
 	
 	for frame_number in frame_numbers:
-		proj_cam = create_camera_at(sel_cam, frame_number, link_cameras)
+		proj_cam = create_camera_at(sel_cam, frame_number, link_cameras, False)
 		
 		# Make it look Good(tm)
 		last_x = last_x + OPTIMUM_DAG_OFFSET
 		proj_cam["xpos"].setValue(last_x)
 		
-		proj_cam["at"].clearAnimated()
-		proj_cam["at"].setValue(frame_number)
 		frame_hold = nuke.nodes.FrameHold()
 		frame_hold.setInput(0, dot)
-		frame_hold["first_frame"].setValue(frame_number)
+		if link_cameras:
+			frame_hold["first_frame"].setExpression(proj_cam.name() + ".at")
+		else:
+			frame_hold["first_frame"].setValue(frame_number)
 		
 		project3d = nuke.createNode("Project3D", inpanel = False)
 		
