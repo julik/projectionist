@@ -1,4 +1,4 @@
-import nuke, nukescripts, os, sys, re
+import nuke, nukescripts, os, sys, re, inspect
 __version__ = (1, 1, 1) 
 
 MY_MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -7,6 +7,15 @@ ICONS_PATH =  os.path.join(MY_MODULE_DIR, "icons")
 
 OPTIMUM_DAG_OFFSET = 100
 CAMERA_NODES = ["Camera", "Camera2", "SyCamera"]
+
+def func_shorthand(symbol):
+	"""
+	Returns the fully qualified function call with it's module so that it can be used in Nuke's menus,
+	even if your function is nested 6 levels deep in a module
+	func_shorthand(do_this) #=> "some.module.another.do_this()"
+	"""
+	my_module = inspect.getmodule(symbol).__name__
+	return '.'.join([my_module, symbol.__name__]) + '()'
 
 def ensure_camera_selected(selected_camera):
 	"""
@@ -18,6 +27,13 @@ def ensure_camera_selected(selected_camera):
 	else:
 		return True
 
+def set_frame_at():
+	"""
+	Gets assigned to the button callback
+	"""
+	n = nuke.thisNode()
+	n["at"].setValue(int(nuke.root()["frame"].getValue()))
+	
 def create_camera_at(selected_camera, at_frame, link_to_original = False):
 	"""
 	Creates a camera that is a frozen copy of the currently selected camera at the current frame.
@@ -36,17 +52,20 @@ def create_camera_at(selected_camera, at_frame, link_to_original = False):
 	camera_op_class = selected_camera.Class()
 	locked_cam = getattr(nuke.nodes, camera_op_class)() # Do not manage connections
 	
-	locked_cam.setName("%s_Proj_%d" % (selected_camera_name, at_frame))
+	locked_cam.setName("%s_Proj" % selected_camera_name)
 	
-	# Add the "at" knob
-	tab = nuke.Tab_Knob('Frame') 
-	locked_cam.addKnob(tab)
-	at = nuke.Double_Knob('at')
-	
-	# Animate the knob to the current frame
-	at.setAnimated()
-	at.setValueAt(at_frame, at_frame)
-	locked_cam.addKnob(at)
+	if link_to_original:
+		# Add the "at" knob
+		tab = nuke.Tab_Knob('Frame') 
+		locked_cam.addKnob(tab)
+		
+		at = nuke.Int_Knob('at')
+		at.setValue(at_frame)
+		locked_cam.addKnob(at)
+		
+		tframe = nuke.PyScript_Knob("Py_setThisFrame", "Set to this frame", func_shorthand(set_frame_at))
+		tframe.clearFlag(nuke.STARTLINE)
+		locked_cam.addKnob(tframe)
 	
 	# Walk the animated knobs on the source camera and bind the projected camera to them
 	for knob_name, knob in selected_camera.knobs().iteritems():
@@ -71,7 +90,10 @@ def create_camera_at(selected_camera, at_frame, link_to_original = False):
 	
 	# Show a helpful reminder on the node label
 	# For String and File knobs you have to put the expression in brackets directly into the knob's value. Like so: 
-	locked_cam["label"].setValue("at [value at]")
+	if link_to_original:
+		locked_cam["label"].setValue("at [value at]")
+	else:
+		locked_cam["label"].setValue("at %d" % at_frame)
 	
 	# Give non-default color to projection cameras
 	locked_cam["tile_color"].setValue(0xc97fff)
@@ -125,15 +147,15 @@ def create_projection_alley(sel_cam, frame_numbers, apply_crop, link_cameras):
 		last_x = last_x + OPTIMUM_DAG_OFFSET
 		cam["xpos"].setValue(last_x)
 		
-		# Retime the cam
-		cam["at"].clearAnimated()
-		cam["at"].setValue(frame_number)
-		
 		frame_hold = nuke.nodes.FrameHold()
 		frame_hold.setInput(0, dot)
-		frame_hold["first_frame"].setValue(frame_number)
-		project3d = nuke.nodes.Project3D()
+
+		if link_cameras:
+			frame_hold["first_frame"].setExpression(proj_cam.name() + ".at")
+		else:
+			frame_hold["first_frame"].setValue(frame_number)
 		
+		project3d = nuke.nodes.Project3D()
 		# It's better to have uncropped projections since alpha will determine layering
 		# WARNING creates bizarre overlaps!
 		if not apply_crop:
@@ -146,7 +168,6 @@ def create_projection_alley(sel_cam, frame_numbers, apply_crop, link_cameras):
 		
 	if len(shader_stack) > 1:
 		shader = shader_stack.pop(0) # just implement a fucking stack.shift() nazis
-		all_nodes.append(shader)
 		while len(shader_stack) > 0:
 			merge_mat = nuke.nodes.MergeMat()
 			merge_mat.setInput(0, shader)
@@ -154,7 +175,6 @@ def create_projection_alley(sel_cam, frame_numbers, apply_crop, link_cameras):
 			shader = merge_mat # :-)
 	else:
 		shader = shader_stack[0]
-	
 	
 	# End dot for the shaders
 	end_dot = nuke.nodes.Output()
@@ -226,11 +246,11 @@ def create_projection_alley_panel():
 	group.setName("ProjectionAlley")
 
 def convert_to_dolly():
-    """
-    Will extract the "translate" channel of a Camera and put it into
-    an Axis node. The rotating Camera will be parented underneath the Axis.
-    After that you can parent nodal elements (skydomes etc.) under the Axis.
-    """
+	"""
+	Will extract the "translate" channel of a Camera and put it into
+	an Axis node. The rotating Camera will be parented underneath the Axis.
+	After that you can parent nodal elements (skydomes etc.) under the Axis.
+	"""
 	if not ensure_camera_selected(nuke.selectedNode()):
 		return
 	
