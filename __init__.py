@@ -125,8 +125,8 @@ def create_camera_at_and_shader(selected_camera, at_frame, link_to_original = Fa
     project3d["xpos"].setValue( hold["xpos"].getValue())
     project3d["ypos"].setValue( hold["ypos"].getValue() + 32)
     
-    project3d.setInput(1, cam)
     project3d.setInput(0, hold)
+    project3d.setInput(1, cam)
     
 def create_projection_alley(sel_cam, frame_numbers, apply_crop, link_cameras):
     """
