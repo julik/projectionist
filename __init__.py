@@ -40,7 +40,8 @@ def create_camera_at(selected_camera, at_frame, link_to_original = False):
 	The freeze frame is controlled with a separated knob and can be animated for timewarp effects.
 	Frozen camera will be returned. If link_to_original is set to True the camera will be linked to
 	the original camera and can therefore be timewarped with the created "at" knob. However it's
-	oftentimes better to just create a camera that is not linked to not pollute the DAG with extra connections
+	oftentimes better to just create a camera that is not linked to not pollute the DAG with extra connections,
+	so that's what we do by default
 	"""
 	if not ensure_camera_selected(selected_camera):
 		return
