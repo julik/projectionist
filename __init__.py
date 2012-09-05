@@ -125,9 +125,16 @@ def create_camera_at_and_shader(selected_camera, at_frame, link_to_original = Fa
     project3d["xpos"].setValue( hold["xpos"].getValue())
     project3d["ypos"].setValue( hold["ypos"].getValue() + 32)
     
-    project3d.setInput(0, hold)
-    project3d.setInput(1, cam)
-    
+    set_inputs(project3d, hold, cam)
+
+def set_inputs(node, *inputs):
+    """
+    Sets inputs of the passed node in the order of the passed input nodes.
+    The first node will become input 0 and so on
+    """
+    for idx, input in enumerate(inputs):
+        node.setInput(idx, inputs)
+
 def create_projection_alley(sel_cam, frame_numbers, apply_crop, link_cameras):
     """
     Takes an animated camera, and instances it across the passed list of frames. Each camera projects a hold frame
@@ -169,8 +176,7 @@ def create_projection_alley(sel_cam, frame_numbers, apply_crop, link_cameras):
             project3d["crop"].setValue(0)
         
         # First set the zero input (avoid Nuke bug)
-        project3d.setInput(0, frame_hold)
-        project3d.setInput(1, cam)
+        set_inputs(project3d, frame_hold, cam)
         shader_stack.append(project3d)
         
     if len(shader_stack) > 1:
