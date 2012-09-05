@@ -64,6 +64,7 @@ def create_camera_at(selected_camera, at_frame, link_to_original = False):
         at.setValue(at_frame)
         locked_cam.addKnob(at)
         
+        # We need to use the textual function shorthand for the button, we cannot link to the Python function closure
         tframe = nuke.PyScript_Knob("Py_setThisFrame", "Set to this frame", func_shorthand(set_frame_at))
         tframe.clearFlag(nuke.STARTLINE)
         locked_cam.addKnob(tframe)
