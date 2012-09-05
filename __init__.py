@@ -51,6 +51,11 @@ def create_camera_at(selected_camera, at_frame, link_to_original = False):
     # Create a fresh cam, make sure it has the same CameraOp class as the camera
     # we are replicating. This is important when we are using non-standard Camera ops.
     camera_op_class = selected_camera.Class()
+    
+    # Create the locked camera without changing any DAG connections.
+    # This is analogous to creating a Nuke node using a constructor from the
+    # nodes namespace
+    #    cam = nuke.nodes.Camera2()
     locked_cam = getattr(nuke.nodes, camera_op_class)() # Do not manage connections
     
     locked_cam.setName("%s_Proj" % selected_camera_name)
