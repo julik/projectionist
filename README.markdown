@@ -41,10 +41,6 @@ Copy the directory somewhere, no matter where. Then import the module into your 
 
 Note that projectionist does NOT contain any gizmos, so your script will not be polluted - it just helps you _create_ things.
 
-## Contributions and fixes
-
-When contributing to Projectionist please set your editor to LF (UNIX) line breaks and use 4 spaces for indentation.
-
 ## Credits
 
 Created by Julik Tarkhanov <me@julik.nl> in Amsterdam, 2011.
