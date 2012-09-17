@@ -281,15 +281,22 @@ def convert_to_dolly():
     # Shortcut way to copy multiparameter knob animations
     # http://forums.thefoundry.co.uk/phpBB2/viewtopic.php?t=4311
     dolly['translate'].fromScript(cam['translate'].toScript()) 
-
-    # Reset the translations of the camera to 0
-    cam['translate'].fromScript("0 0 0")
+    
+    make_camera_nodal(cam)
     cam.setInput(0, dolly)
 
+
+def make_camera_nodal(cam):
+    # Reset the translations of the camera to 0
+    cam['translate'].fromScript("0 0 0")
     # Note that the cam is nodal
     cam['label'].setValue(cam['label'].getValue() + " (nodal)")
 
-    
+def make_selected_cam_nodal():
+    if not ensure_camera_selected(nuke.selectedNode())
+        return
+    make_camera_nodal(nuke.selectedNode())
+
 def create_projector_panel():
     if not ensure_camera_selected(nuke.selectedNode()):
         return
@@ -329,3 +336,4 @@ if nuke.GUI:
     me.addCommand("Create a projector from this camera", create_projector_panel, icon = os.path.join(ICONS_PATH, "at.png"))
     me.addCommand("Create projection alley from this camera", create_projection_alley_panel, icon = os.path.join(ICONS_PATH, "alley.png"))
     me.addCommand("Convert this camera to nodal with dolly axis", convert_to_dolly, icon = os.path.join(ICONS_PATH, "nodal.png"))
+    me.addCommand("Make this camera nodal at 0", make_selected_cam_nodal, icon = os.path.join(ICONS_PATH, "onlyNodal.png"))
