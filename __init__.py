@@ -293,7 +293,7 @@ def make_camera_nodal(cam):
     cam['label'].setValue(cam['label'].getValue() + " (nodal)")
 
 def make_selected_cam_nodal():
-    if not ensure_camera_selected(nuke.selectedNode())
+    if not ensure_camera_selected(nuke.selectedNode()):
         return
     make_camera_nodal(nuke.selectedNode())
 
