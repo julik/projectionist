@@ -21,9 +21,13 @@ This is something you have to do alot so this setup is automated to the top.
 This will take your camera across a framerange, and create a number of projecting cameras frozen at frames in the framerange. From each one of these it will
 create a frame hold node and a project3d shader, and the shaders will all be combined. So the output of this command is a group that has all the projection cameras
 embedded into it, as well as shaders - it's output is also a shader. Connect a premultiplied plate into the input of the group, and it's output is a projection shader
-with multiple frames layered on top of each other. Layering uses alpha masking, so if you roto out your talent you will get a ready cleanplate out of this in no time flat.
+with multiple frames layered on top of each other. Layering uses alpha masking, so if you roto out your talent you will get a cleanplate in the shader space.
 
-It's also majorly useful for extracting textures from big camera moves - like flyovers and aerial shots.
+It's also majorly useful for extracting textures from big camera moves - like flyovers, aerial shots or drive shots.
+
+The layering setting defines the stacking order of the projected patches. In general, you layer *back to front* (the default) if your camera is moving *forward*, and
+you layer *front to back* if your camera is moving *backwards* through the framerange. This helps because the projected patches with higher definition images will end
+up on top of the layer stack.
 
 ### Convert this camera to nodal with dolly axis
 
