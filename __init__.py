@@ -1,5 +1,5 @@
 import nuke, nukescripts, os, sys, re, inspect
-__version__ = (1, 1, 2) 
+__version__ = (1, 1, 3) 
 
 MY_MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 # Use self-detecting path for icons.
@@ -156,6 +156,10 @@ def create_projection_alley(sel_cam, frame_numbers, apply_crop, link_cameras):
     
     for frame_number in frame_numbers:
         cam = create_camera_at(sel_cam, frame_number, link_cameras)
+        
+        # Make the camera invisible since too many cameras just clobber the viewport
+        # TODO: make optional
+        cam["display"].setValue("off")
         
         # Make it look Good(tm)
         last_x = last_x + OPTIMUM_DAG_OFFSET
