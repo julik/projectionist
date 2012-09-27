@@ -132,8 +132,8 @@ def set_inputs(node, *inputs):
     Sets inputs of the passed node in the order of the passed input nodes.
     The first node will become input 0 and so on
     """
-    for idx, input in enumerate(inputs):
-        node.setInput(idx, inputs)
+    for idx, one_input in enumerate(inputs):
+        node.setInput(idx, one_input)
 
 def create_projection_alley(sel_cam, frame_numbers, apply_crop, link_cameras):
     """
