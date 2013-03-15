@@ -29,6 +29,10 @@ The layering setting defines the stacking order of the projected patches. In gen
 you layer *front to back* if your camera is moving *backwards* through the framerange. This helps because the projected patches with higher definition images will end
 up on top of the layer stack.
 
+For example, if you use a long pan and crete a ProjectionAlley of it onto a sphere, you can easily get this kind of texture:
+
+![Alley](https://github.com/julik/projectionist/raw/master/images/alley.png)
+
 ### Convert this camera to nodal with dolly axis
 
 This will extract the position animation of your camera into a separate Axis node (your "dolly"). The camera will be then repositioned
