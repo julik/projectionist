@@ -1,5 +1,5 @@
 import nuke, nukescripts, os, sys, re, inspect
-__version__ = (1, 1, 3) 
+__version__ = (1, 1, 4) 
 
 MY_MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 # Use self-detecting path for icons.
@@ -74,20 +74,22 @@ def create_camera_at(selected_camera, at_frame, link_to_original = False):
         tframe.clearFlag(nuke.STARTLINE)
         locked_cam.addKnob(tframe)
     
-    # Walk the animated knobs on the source camera and bind the projected camera to them
-    for knob_name, knob in selected_camera.knobs().iteritems():
+    # Walk the animated knobs on the source camera and bind the projected camera to them.
+    # We walk the knobs on the LOCKED cam so that we do not copy over the user knobs!
+    for knob_name, knob_on_locked in locked_cam.knobs().iteritems():
+        knob = selected_camera[knob_name]
         if knob.isAnimated():
             # When we create a shitload of cameras it's better to just unlink them
             if link_to_original:
-                locked_cam[knob_name].setExpression(selected_camera_name + "." + knob_name + "(at)")
+                knob_on_locked.setExpression(selected_camera_name + "." + knob_name + "(at)")
             else:
                 try:
-                    locked_cam[knob_name].setValue(knob.getValueAt(at_frame))
+                    knob_on_locked.setValue(knob.getValueAt(at_frame))
                 except TypeError: # they could not ensure that getValue and setValue have same types
                     pass
         elif hasattr(knob, "notDefault") and knob.notDefault():
             try:
-                locked_cam[knob_name].setValue(knob.getValue())
+                knob_on_locked.setValue(knob.getValue())
             except TypeError: # they could not ensure that getValue and setValue have same types
                 pass
     
