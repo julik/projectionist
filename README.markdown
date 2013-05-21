@@ -34,10 +34,11 @@ up on top.
 * **front to back** - if your camera flies _away_ from the subject or zooms _out_. Frames at the beginning of
 the sequence will end up on top.
 
-For example: a camera zooming into a window of a skyscraper should definitely layer **back to front.**
+A camera zooming into a window of a skyscraper should definitely layer **back to front.**
 
-
-For example, if you use a long pan and crete a ProjectionAlley of it onto a sphere, you can easily get this kind of texture:
+The projection alley technique is especially handy for matte-painting base extraction. For instance,
+a long zoom/pan can easily give you this cool texture as a result (you can then bake it using a UV render,
+or register it with a camera to get a flat projection):
 
 ![Alley](https://github.com/julik/projectionist/raw/master/images/alley.png)
 
