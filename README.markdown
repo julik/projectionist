@@ -25,9 +25,17 @@ with multiple frames layered on top of each other. Layering uses alpha masking, 
 
 It's also majorly useful for extracting textures from big camera moves - like flyovers, aerial shots or drive shots.
 
-The layering setting defines the stacking order of the projected patches. In general, you layer *back to front* (the default) if your camera is moving *forward*, and
-you layer *front to back* if your camera is moving *backwards* through the framerange. This helps because the projected patches with higher definition images will end
-up on top of the layer stack.
+The layering setting defines the stacking order of the projected patches. Basically, you should aim to always have the
+highest-resolution patches on top of the rest. Since the textures are going to be layered along the framerange, there is
+a choice to be made in terms of layering.
+
+* **back to front** - if your camera flies _toward_ the subject or zooms _in_. The frames with higher numbers will end
+up on top.
+* **front to back** - if your camera flies _away_ from the subject or zooms _out_. Frames at the beginning of
+the sequence will end up on top.
+
+For example: a camera zooming into a window of a skyscraper should definitely layer **back to front.**
+
 
 For example, if you use a long pan and crete a ProjectionAlley of it onto a sphere, you can easily get this kind of texture:
 
