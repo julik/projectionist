@@ -1,5 +1,5 @@
 import nuke, nukescripts, os, sys, re, inspect
-__version__ = (1, 1, 4) 
+__version__ = (2, 0, 0) 
 
 MY_MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 # Use self-detecting path for icons.
@@ -137,7 +137,7 @@ def set_inputs(node, *inputs):
     for idx, one_input in enumerate(inputs):
         node.setInput(idx, one_input)
 
-def create_projection_alley(sel_cam, frame_numbers, apply_crop, link_cameras):
+def create_projection_alley(sel_cam, frame_numbers, link_cameras, project3d_setup_callback):
     """
     Takes an animated camera, and instances it across the passed list of frames. Each camera projects a hold frame
     from the image input, and all of the projections are combined into one shader that can be applied to any geometry.
@@ -176,10 +176,9 @@ def create_projection_alley(sel_cam, frame_numbers, apply_crop, link_cameras):
             frame_hold["first_frame"].setValue(frame_number)
         
         project3d = nuke.nodes.Project3D()
-        # It's better to have uncropped projections since alpha will determine layering
-        # WARNING creates bizarre overlaps!
-        if not apply_crop:
-            project3d["crop"].setValue(0)
+        
+        # Pass the p3d to the callback
+        project3d_setup_callback(project3d)
         
         # First set the zero input (avoid Nuke bug)
         set_inputs(project3d, frame_hold, cam)
@@ -224,17 +223,29 @@ def create_projection_alley_panel():
     k = nuke.Boolean_Knob("backwards", "Layer last frame to first frame")
     k.setFlag(nuke.STARTLINE)
     k.setTooltip("Projected frames are layered first to last (last frame comes on top). When checked the first frames will come out on top")
+    p.addKnob(k)
     
-    p.addKnob(k)
-
-    k = nuke.Boolean_Knob("crop", "Crop the projections to bbox")
-    k.setFlag(nuke.STARTLINE)
-    k.setTooltip("Use this with caution if you use lens distortion that stretches outside of the format")
-    p.addKnob(k)
-
     k = nuke.Boolean_Knob("link", "Create linked cameras")
     k.setTooltip("Creates a linked multicam rig that will update if you change the camera path")
     k.setFlag(nuke.STARTLINE)
+    p.addKnob(k)
+    
+    p.addKnob(nuke.Text_Knob('divdr', 'Project3D Parameters', ''))
+    
+    # Add the "project on" knob. Normally we would only want to project against the normals.
+    k = nuke.Enumeration_Knob("project_on", "project on", ['both', 'front', 'back'])
+    k.setFlag(nuke.STARTLINE)
+    k.setValue('front')
+    p.addKnob(k)
+    
+    k = nuke.Boolean_Knob("crop", "Crop the projections to bbox")
+    k.setTooltip("Use this with caution if you use lens distortion that stretches outside of the format")
+    p.addKnob(k)
+    
+    # Add the "occlusion mode" knob. Normally we would only want to project against the normals.
+    k = nuke.Enumeration_Knob("occlusion_mode", "occlusion mode", ['none', 'self', 'world'])
+    k.setFlag(nuke.STARTLINE)
+    k.setValue('none')
     p.addKnob(k)
     
     result = p.showModalDialog()    
@@ -259,8 +270,17 @@ def create_projection_alley_panel():
         crop = True
     if p.knobs()["link"].value():
         link = True
-        
-    group = create_projection_alley(nuke.selectedNode(), frame_numbers, crop, link)
+    
+    # This will be called for every project3d node that gets created
+    def setup_project3d(node):
+      proj_on = p.knobs()["project_on"].value()
+      occlusion_mode = p.knobs()["occlusion_mode"].value()
+      node["project_on"].setValue(proj_on)
+      node["project_on"].setValue(occlusion_mode)
+      if p.knobs()["crop"].value():
+        node["crop"].setValue(1)
+    
+    group = create_projection_alley(nuke.selectedNode(), frame_numbers, link, setup_project3d)
     group["label"].setValue("Cam prj f: %d to: %d every: %d" % (start, finish, istep))
     group.setName("ProjectionAlley")
 
