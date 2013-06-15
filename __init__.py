@@ -273,12 +273,8 @@ def create_projection_alley_panel():
     
     # This will be called for every project3d node that gets created
     def setup_project3d(node):
-      proj_on = p.knobs()["project_on"].value()
-      occlusion_mode = p.knobs()["occlusion_mode"].value()
-      node["project_on"].setValue(proj_on)
-      node["project_on"].setValue(occlusion_mode)
-      if p.knobs()["crop"].value():
-        node["crop"].setValue(1)
+      for k in ('occlusion_mode', 'crop', 'project_on'):
+        node[k].setValue(p.knobs()[k].value())
     
     group = create_projection_alley(nuke.selectedNode(), frame_numbers, link, setup_project3d)
     group["label"].setValue("Cam prj f: %d to: %d every: %d" % (start, finish, istep))
