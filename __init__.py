@@ -262,8 +262,9 @@ def create_projection_alley_panel():
     
     link = False
     crop = False
+    # Make sure we also use the last frame
     if finish not in frame_numbers:
-        frame_numbers.append(finish) # If the step is higher and we somehow to not get the last frame for sure
+        frame_numbers.append(finish)
     
     if p.knobs()["backwards"].value():
         frame_numbers.reverse()
