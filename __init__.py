@@ -242,7 +242,8 @@ def create_projection_alley_panel():
     k.setTooltip("Use this with caution if you use lens distortion that stretches outside of the format")
     p.addKnob(k)
     
-    # Add the "occlusion mode" knob. Normally we would only want to project against the normals.
+    # Add the "occlusion mode" knob. Normally we would only want to project 
+    # against the normals.
     k = nuke.Enumeration_Knob("occlusion_mode", "occlusion mode", ['none', 'self', 'world'])
     k.setFlag(nuke.STARTLINE)
     k.setValue('none')
