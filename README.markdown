@@ -51,10 +51,9 @@ axis that drives the camera and the elements will be properly positioned yet fly
 
 ## Installation
 
-Copy the directory somewhere, no matter where. Then import the module into your Nuke's init.py or menu.py, like this:
+Copy the directory somewhere, for example into your `$HOME/.nuke`. Then import the module into your Nuke's `menu.py`, like this:
 
-	sys.path.append("/path/to/the/directory/where/projectionist/is/in")
-	import projectionist
+    nuke.pluginAddPath('/Users/fred/.nuke/projectionist')
 
 Note that projectionist does NOT contain any gizmos, so your script will not be polluted - it just helps you _create_ things.
 
