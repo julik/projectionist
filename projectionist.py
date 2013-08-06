@@ -1,7 +1,8 @@
 import nuke, nukescripts, os, sys, re, inspect
-__version__ = (2, 0, 0) \
+__version__ = (2, 1, 0)
 
 MY_MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 # Use self-detecting path for icons.
 ICONS_PATH =  os.path.join(MY_MODULE_DIR, "icons")
 
