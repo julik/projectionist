@@ -1,11 +1,6 @@
 import nuke, nukescripts, os, sys, re, inspect
 __version__ = (2, 0, 0) \
 
-# In Nuke's loading cycle __file__ is not defined
-# so we have to create one ;-)
-# http://farmdev.com/src/secrets/framehack/
-__file__ = sys._getframe().f_code.co_filename
-
 MY_MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 # Use self-detecting path for icons.
 ICONS_PATH =  os.path.join(MY_MODULE_DIR, "icons")
